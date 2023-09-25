@@ -24,7 +24,7 @@ module.exports.checkInventory = async ({ bookId, quantity }) => {
     if (isBookAvailable(book, quantity)) {
       return book;
     } else {
-      let bookOutOfStockError = new Error("The book is out of stock");
+      let bookOutOfStockError = new Error("The book is out of stock...");
       bookOutOfStockError.name = "BookOutOfStock";
       throw bookOutOfStockError;
     }
