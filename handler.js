@@ -8,7 +8,10 @@ const isBookAvailable = (book, quantity) => {
 };
 
 
-module.exports.checkInventory = async ({ bookId, quantity }) => {
+module.exports.checkInventory = async (event) => {
+  const { bookId, quantity } = event;
+
+
   try {
     let params = {
       TableName: 'bookTabel',
@@ -41,7 +44,10 @@ module.exports.checkInventory = async ({ bookId, quantity }) => {
 };
 
 module.exports.calculateTotal = async (event) => {
-  return "Total is calculating and Total is 120";
+  const { book, quantity } = event;
+  let total = book.price * quantity;
+
+  return { total };
 };
 
 
