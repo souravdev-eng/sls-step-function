@@ -1,0 +1,58 @@
+service: step-functions
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: ap-south-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action: dynamodb:*
+      Resource: arn:aws:dynamodb:ap-south-1:319821721090:table/bookTabel
+    - Effect: Allow
+      Action: dynamodb:*
+      Resource: arn:aws:dynamodb:ap-south-1:319821721090:table/userTable
+
+plugins:
+  - serverless-step-functions
+
+functions:
+  checkInventory:
+    handler: handler.checkInventory
+  calculateTotal:
+    handler: handler.calculateTotal
+
+stepFunctions:
+  stateMachines:
+    storeCheckoutFlow:
+      name: storeCheckoutFlow
+      definition:
+        StartAt: checkInventory
+        States:
+          checkInventory:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [checkInventory, Arn]
+            # NOTE: Catch state is simply to defined our error state handle
+            Catch:
+              - ErrorEquals: [BookNotFound]
+                Next: BookNotFoundError
+              - ErrorEquals: [bookOutOfStock]
+                Next: bookOutOfStockError
+            Next: calculateTotal
+          calculateTotal:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [calculateTotal, Arn]
+            End: true
+
+          # NOTE: Error state handler
+          BookNotFoundError:
+            Type: Pass
+            Result: 'No such book available'
+            End: true
+          bookOutOfStockError:
+            Type: Pass
+            Result: 'The book is out of stock now'
+            End: true
